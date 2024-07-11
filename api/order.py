@@ -36,8 +36,10 @@ class Order(Resource):
                             group by o.order_detail_id
                         ) 
                             select distinct on (od.order_detail_id)
-                                c.*,
+                                c.*,    
                                 od.*,
+                                d.*,
+                                t.*,
                                 code_value(od.order_status,
                                 'eng') as order_status_name,
                                 array_agg(m.menu_name) as menu,
@@ -55,12 +57,15 @@ class Order(Resource):
                                 c.customer_id = od.customer_id
                             join menu m on
                                 m.menu_id = o.menu_id
+                            join delivery d on d.order_detail_id = od.order_detail_id
                             where
                                 od.is_deleted = '001002'
                             group by
                                 od.order_detail_id,
                                 c.customer_id,
-                                tp.order_total
+                                tp.order_total,
+                                d.delivery_id,
+                                t.transaction_id
                             order by
                                 od.order_detail_id desc
                 ''') 

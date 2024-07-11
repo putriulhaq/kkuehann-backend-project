@@ -3,6 +3,8 @@ import psycopg2.pool
 import atexit
 import logging
 from dotenv import load_dotenv
+import time
+from threading import Thread
 
 # Konfigurasi logging
 logging.basicConfig(level=logging.DEBUG)
@@ -16,6 +18,8 @@ class ConnectionPool:
     def __init__(self):
         self.min_conn = 1
         self.max_conn = 5
+        self.idle_timeout = 30  # 5 menit dalam detik
+        self.connections = {}
         try:
             self.pool = psycopg2.pool.SimpleConnectionPool(
                 self.min_conn, 
@@ -27,6 +31,7 @@ class ConnectionPool:
                 port=os.getenv('DB_PORT')
             )
             logger.debug("Connection pool created successfully")
+            self.start_idle_connection_checker()
         except psycopg2.OperationalError as e:
             logger.error(f"Failed to connect to database: {e}")
             self.pool = None
@@ -52,6 +57,22 @@ class ConnectionPool:
             self.pool.closeall()
         else:
             logger.error("Cannot close connections. Pool is not initialized")
+
+    def check_idle_connections(self):
+        current_time = time.time()
+        for conn, last_used in list(self.connections.items()):
+            if current_time - last_used > self.idle_timeout:
+                logger.debug(f"Closing idle connection: {conn}")
+                self.pool.putconn(conn)
+                del self.connections[conn]
+
+    def start_idle_connection_checker(self):
+        def check_idle_periodically():
+            while True:
+                time.sleep(60)  # Periksa setiap menit
+                self.check_idle_connections()
+
+        Thread(target=check_idle_periodically, daemon=True).start()
 
 def initializeConnectionPool():
     global pool
