@@ -14,7 +14,7 @@ deliveryArgs.add_argument('delivery_type', type=str,)
 deliveryArgs.add_argument('delivery_status', type=str,)
 
 @delivery.route("")
-class Transaction(Resource):
+class Delivery(Resource):
     def get(self):
         if pool:
             print('succes')
@@ -36,6 +36,7 @@ class Transaction(Resource):
                     FROM delivery d
                     JOIN order_detail od on od.order_detail_id = d.order_detail_id
                     JOIN customer c on c.customer_id = od.customer_id
+                    WHERE d.is_deleted = '001002'
                     order by delivery_id desc
                 ''') 
             res = cur.fetchall()

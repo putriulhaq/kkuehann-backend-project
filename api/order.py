@@ -151,8 +151,8 @@ class Order(Resource):
             for item in order_items:
                 cur.execute(
                     """
-                    INSERT INTO public."order" (order_detail_id, menu_id, quantity, order_status)
-                    VALUES (%s, %s, %s, '002001')
+                    INSERT INTO public."order" (order_detail_id, menu_id, quantity)
+                    VALUES (%s, %s, %s)
                     """,
                     (
                         order_detail_id,
@@ -168,7 +168,7 @@ class Order(Resource):
                     transaction_id, transaction_type, transaction_status, transaction_to, order_detail_id
                 )
                 VALUES (
-                    NEXTVAL('transaction_id_seq'), %s, %s, '004001', %s
+                    NEXTVAL('transaction_id_seq'), %s, %s, '004002', %s
                 )
                 """,
                 (order_data['transaction_type'], order_data['transaction_status'], order_detail_id,)
@@ -331,6 +331,18 @@ class DeleteOrder(Resource):
                 """
                    update
                         public.transaction
+                    set
+                        is_deleted = '001001'
+                    where
+                        order_detail_id = %s
+                    """, 
+                (order_detail_id,)
+                ) 
+            
+            cur.execute(
+                """
+                   update
+                        public.delivery
                     set
                         is_deleted = '001001'
                     where
