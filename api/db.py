@@ -18,7 +18,7 @@ class ConnectionPool:
     def __init__(self):
         self.min_conn = 1
         self.max_conn = 5
-        self.idle_timeout = 10  # 5 menit dalam detik
+        self.idle_timeout = 50  # 5 menit dalam detik
         self.connections = {}
         try:
             self.pool = psycopg2.pool.SimpleConnectionPool(
