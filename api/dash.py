@@ -88,44 +88,36 @@ class LastOrder(Resource):
         conn = pool.get_connection()
         cur = conn.cursor()
         try:
-            cur.execute(
-                '''
-               with menu_pricelist as (
-                select
-                    m.menu_id,
-                    menu_name,
-                    cast(m.priceist as integer) as priceist
-                from
-                    menu m
-                ),
-                order_summary as (
-                select
-                    mp.menu_name,   
-                    count(o.menu_id) as order_menu,
-                    mp.priceist,
-                    count(o.menu_id) * mp.priceist as total_price,
-                    AVG(count(o.menu_id) * mp.priceist) OVER () AS average_total_price
-                from
-                    "order" o
-                join menu_pricelist mp on
-                    mp.menu_id = o.menu_id
-                group by
-                    mp.menu_name,
-                    mp.priceist,
-                    mp.menu_id 
+          cur.execute("""
+                WITH date_series AS (
+                SELECT 
+                    generate_series(
+                    DATE_TRUNC('month', CURRENT_DATE),
+                    DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month' - INTERVAL '1 day',
+                    INTERVAL '1 day'
+                    )::date AS date
                 )
-                select
-                    sum(os.total_price) as total,
-                    sum(os.order_menu) as order,
-                    os.average_total_price
-                from
-                    order_summary os
-                group by
-                    average_total_price
-                ''') 
-            res = cur.fetchall()
-            cur.close()
-            return jsonify(res)
+                SELECT 
+                ds.date,
+                COALESCE(COUNT(od.order_detail_id), 0) AS order_count
+                FROM 
+                date_series ds
+                LEFT JOIN 
+                order_detail od ON DATE(od.upd_date_order) = ds.date
+                GROUP BY 
+                ds.date
+                ORDER BY 
+                ds.date;
+            """
+            )
+          results = cur.fetchall()
+          dates = [row[0].strftime('%Y-%m-%d') for row in results]
+          order_counts = [row[1] for row in results]
+          final_result = {
+                "dates": dates,
+                "order_counts": order_counts
+            }
+          return jsonify(final_result)
         except Exception as e:
                 return {"error": str(e)}, 500
         finally:
