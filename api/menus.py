@@ -13,7 +13,7 @@ menusArgs = reqparse.RequestParser()
 # menusArgs.add_argument('rate', type=int, help='Rate cannot be converted')
 menusArgs.add_argument('menu_name', type=str,)
 menusArgs.add_argument('description', type=str,)
-menusArgs.add_argument('priceist', type=str,)
+menusArgs.add_argument('pricelist', type=str,)
 
 @menus.route("")
 class Menus(Resource):
@@ -65,7 +65,7 @@ class Menus(Resource):
                         %(description)s,
                         '001002', 
                         'now()', 
-                        %(priceist)s
+                        %(pricelist)s
                     )
                     """, 
                 args

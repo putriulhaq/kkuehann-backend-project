@@ -24,11 +24,7 @@ class ConnectionPool:
             self.pool = psycopg2.pool.SimpleConnectionPool(
                 self.min_conn, 
                 self.max_conn,
-                database=os.getenv('DB_NAME'),
-                user=os.getenv('DB_USER'),
-                password=os.getenv('DB_PASSWORD'),
-                host=os.getenv('DB_HOST'),
-                port=os.getenv('DB_PORT')
+                os.getenv('DATABASE_URL')
             )
             logger.debug("Connection pool created successfully")
             self.start_idle_connection_checker()
