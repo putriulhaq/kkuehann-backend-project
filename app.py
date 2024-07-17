@@ -27,6 +27,7 @@ from api.menus import menus
 from api.transaction import transaction
 from api.order import order
 from api.delivery import delivery
+from api.auth import auth
 # from apis.dashboard import dashboard
 import pkgutil
 
@@ -37,6 +38,7 @@ api.add_namespace(transaction, path='/transaction')
 api.add_namespace(dash, path='/dash')
 api.add_namespace(order, path='/order') 
 api.add_namespace(delivery, path='/delivery') 
+api.add_namespace(auth, path='/auth') 
 
     # Route untuk favicon.ico
 @app.route('/favicon.ico')
