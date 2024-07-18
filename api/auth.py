@@ -5,6 +5,10 @@ from psycopg2.extras import DictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 from .db import pool
+import jwt
+import os
+import datetime
+
 
 auth = Namespace("auth", description= "auth's APIS Namespace")
 
@@ -88,9 +92,15 @@ class Login(Resource):
         try: 
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
+            payload = {
+                "user_id": user['user_id'],
+                "username": user['username'],
+                "exp": datetime.timedelta(minutes=30)
+            }
             
             if user and check_password_hash(user["password"], password):
-                return {"message": "login succesfull"}
+                token = jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm="HS256")
+                return {"message": "login succesfull", "token": token}, 201
             else:
                 return {"message": "invalid name or username"}
         finally:
