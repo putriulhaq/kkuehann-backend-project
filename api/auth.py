@@ -7,7 +7,7 @@ from functools import wraps
 from .db import pool
 import jwt
 import os
-import datetime
+from datetime import datetime, timedelta
 
 
 auth = Namespace("auth", description= "auth's APIS Namespace")
@@ -59,7 +59,6 @@ class Register(Resource):
             return {"message": "Missing required fields"}, 400
 
         hashed_password = generate_password_hash(password)
-        print(hashed_password)
 
         conn = pool.get_connection()
         cur = conn.cursor(cursor_factory=DictCursor)
@@ -81,27 +80,31 @@ class Login(Resource):
     @auth.expect(login_model)
     def post (self):
         data = request.json
+        print(data)
         username = data.get('username')
+        print(username)
         password = data.get('password')
 
         if not username or not password:
             return {"message": "Missing username or password"}, 400
         
         conn = pool.get_connection()
-        cur = conn.cursor(cursor_factory=DictCursor)
+        cur = conn.cursor(cursor_factory=DictCursor)    
         try: 
             cur.execute("SELECT * FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
-            payload = {
-                "user_id": user['user_id'],
-                "username": user['username'],
-                "exp": datetime.timedelta(minutes=30)
-            }
+            
             
             if user and check_password_hash(user["password"], password):
+                exp_time = datetime.utcnow() + timedelta(minutes=30)
+                payload = {
+                "user_id": user['user_id'],
+                "username": user['username'],
+                "exp": exp_time
+            }
                 token = jwt.encode(payload, os.getenv('SECRET_KEY'), algorithm="HS256")
-                return {"message": "login succesfull", "token": token}, 201
-            else:
+                return {"message": "login succesfull", "token": token, "username": user['username']}, 201
+            else:   
                 return {"message": "invalid name or username"}
         finally:
             cur.close()
