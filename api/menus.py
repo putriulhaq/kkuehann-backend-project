@@ -123,7 +123,7 @@ class DeleteMenu(Resource):
                 transformed_row = {
                     "menu_id": res["menu_id"],
                     "menu_name": res["menu_name"],
-                    "pricelist": res["priceist"],
+                    "pricelist": res["pricelist"],
                     "description": res["description"]
                 }
                 return jsonify(transformed_row)
@@ -152,13 +152,13 @@ class UpdatedMenu(Resource):
                    update
                         public.menu
                     set
-                        priceist = %s,
+                        pricelist = %s,
                         description = %s,
                         menu_name = %s
                     where
                         menu_id = %s
                     """, 
-                (args['priceist'], args['description'], args['menu_name'], menu_id,)
+                (args['pricelist'], args['description'], args['menu_name'], menu_id,)
                 ) 
             conn.commit()
             return jsonify({"status": "success"})
